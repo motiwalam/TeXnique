@@ -2,6 +2,14 @@ let TIMEOUT_SECONDS = 180;
 let TIMEOUT_STRING = "three minutes";
 let secondsRemaining = TIMEOUT_SECONDS;
 
+let GAME_MODES = {
+    TIMED: "timed",
+    ZEN: "zen",
+};
+let gameMode;
+
+let HIGHSCORE_KEY = "texnique-highscores";
+
 let gameTimer;
 let oldVal;
 let problemNumber = 0;
@@ -15,6 +23,22 @@ let mobile = false;
 let showShadow = false;
 let skippedProblems = [];
 let showSkipped = false;
+
+function updateHighScore(gameMode, numProblems, totalScore) {
+    let highscores = JSON.parse(localStorage.getItem(HIGHSCORE_KEY) ?? "{}");
+    let gameModeHighScores = highscores[gameMode] ?? {highestProblems:0, highestScore:0};
+
+    gameModeHighScores.highestProblems = Math.max(gameModeHighScores.highestProblems, numProblems);
+    gameModeHighScores.highestScore = Math.max(gameModeHighScores.highestScore, totalScore);
+
+    highscores[gameMode] = gameModeHighScores;
+    localStorage.setItem(HIGHSCORE_KEY, JSON.stringify(highscores));
+}
+
+function getHighScore(gameMode) {
+    // precondition: gameMode is already a key in the highscores
+    return JSON.parse(localStorage.getItem(HIGHSCORE_KEY))[gameMode];
+}
 
 function mobileCheck() {
   var check = false;
@@ -107,6 +131,13 @@ function endGame() {
     $("#ending-text").text(endingText);
     $("#ending-text").append("<a style='text-decoration: none;' href='https://www.reddit.com/r/unexpectedfactorial/'>!</a>");
 
+    updateHighScore(gameMode, numCorrect, currentScore);
+
+    let {highestProblems, highestScore} = getHighScore(gameMode);
+    let highScoreText = `Your highscore for problems completed is ${highestProblems} and your highest total score is ${highestScore}.`;
+    $("#highscore-text").text(highScoreText);
+
+
     skippedProblems.forEach(idx => {
       let target = problems[problemsOrder[idx % problems.length]];
       let targetId = 'skipTarget' + idx;
@@ -169,9 +200,11 @@ function startGame(useTimer) {
         startTimer(function() {
             endGame();
         });
+        gameMode = GAME_MODES.TIMED;
     } else {
         displayInfiniteTime();
         loadProblem();
+        gameMode = GAME_MODES.ZEN;
     }
 }
 
