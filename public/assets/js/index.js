@@ -47,7 +47,7 @@ function displayTime(secs) {
 }
 
 function displayInfiniteTime() {
-    typstRender(`\\infty`, $("#timer")[0]);
+    typstRender(`oo`, $("#timer")[0]);
 }
 
 function startTimer(onTimeoutFunc) {

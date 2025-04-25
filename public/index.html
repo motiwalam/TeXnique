@@ -59,11 +59,24 @@
         await $typst.svg({mainContent: ""});
 
         window.typstRender = function (mainContent, targetElem) {
-          // $typst.canvas(targetElem, { mainContent })
-          $typst.svg({ mainContent }).then(svg => {
+          const docWidth = 1332 * 3/4;
+          const docHeight = 100 * 3/4;
+          const wrappedContent = `#set page(width: ${docWidth}pt, height: ${docHeight}pt, margin: 0pt)\n$${mainContent.trim()}$`;
+          $typst.svg({ mainContent: wrappedContent }).then((svg) => {
             console.log(`rendered! SvgElement { len: ${svg.length} }`);
-            // append svg text
             targetElem.innerHTML = svg;
+
+            const svgElem = targetElem.firstElementChild;
+            const width = parseFloat(svgElem.getAttribute('width'));
+            const height = parseFloat(svgElem.getAttribute('height'));
+
+            const scaleFactor = 1;
+            const maxWidth = (targetElem.clientWidth || document.body.clientWidth - 40) * scaleFactor;
+
+            svgElem.setAttribute('width', `${maxWidth}px`);
+            svgElem.setAttribute('height', (height * maxWidth) / width);
+            svgElem.style.display = 'block';
+            svgElem.style.margin = '0 auto';
           });
         };
       });
@@ -209,7 +222,7 @@
         <p> Try to create the following formula: </p>
 
         <div class="latex">
-          <div id="target" style="position: relative;"></div>
+            <div id="target"></div>
         </div>
 
         <br>
@@ -222,7 +235,7 @@
           </div>
 
           <div class="latex out">
-            <div id="out" style="position: relative;"></div>
+            <div id="out"></div>
           </div>
         </div>
 
